@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        <keep-alive :exclude="['index2']">
+            <component :is="currentTab" @set-form="updateform" @update="updateInfo":form-data="computedForm"></component>
+        </keep-alive>
+    </div>
+    <script type="text/x-template" id="np">
+        姓名:<input type="text" v-model='name'> <br>
+        電話：<input type="text" v-model='phone'> <br>
+        <button @click="nextSteps">下一步</button>
+    </script>
+    <script type="text/x-template" id="np2">
+        地址:<input type="text" v-model='addres'> <br>
+        <button @click="preSteps">上一步</button>
+        <button @click="nextSteps">下一步</button>
+    </script>
+    <script type="text/x-template" id="np3">
+        姓名: {{ formData.name }} <br>
+        電話: {{ formData.phone }} <br>
+        地址: {{ formData.addres }} <br>
+        <button @click="preSteps">上一步</button>
+    </script>
+
+
+    <script src="https://unpkg.com/vue@3"></script>
+    <script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                currentTab:'index',
+                form: {},
+            }
+        },
+        methods: {
+            updateform(value){
+                this.currentTab = value;
+            },
+            updateInfo(data) {
+                this.form[data.key] = data.value;
+            }
+        },
+        computed:{
+            computedForm: function(){
+                if(this.currentTab == 'print') {
+                    return this.form;
+                }
+            }
+        },
+    });
+    app.component('index', {
+        name: 'index',
+        template:'#np',
+        data() {
+            return{
+                name:'',
+                phone:'',
+            }
+        },
+        methods:{
+            nextSteps(){
+                this.$emit('set-form','addres');
+            },
+        },
+        watch:{
+            name:{
+                handler(val) {
+                    this.$emit('update', {'key': 'name','value': val})
+                }
+            },
+            phone:{
+                handler(val) {
+                    this.$emit('update', {'key': 'phone','value': val})
+                }
+            },
+    }
+    });
+    app.component('addres', {
+        name:'index2',
+        template:'#np2',
+        data() {
+            return{
+                addres:''
+            }
+        },
+        methods: {
+            preSteps(){
+                this.$emit('set-form','index');
+            },
+            nextSteps(){
+                this.$emit('set-form','print');
+            },
+        },
+        watch:{
+            addres:{
+                handler(val) {
+                    this.$emit('update', {'key': 'addres','value': val})
+                }
+            },
+        }
+    });
+    app.component('print', {
+        template:'#np3',
+        props:['formData'],
+        methods: {
+            preSteps(){
+                this.$emit('set-form','addres');
+            },
+        }
+    });
+    app.mount("#app");
+    </script>
+</body>
+</html>
